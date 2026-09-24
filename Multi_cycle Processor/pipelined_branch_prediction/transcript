@@ -1,0 +1,51 @@
+# vsim -do {run -all; quit -f} -c 03_sim/work.tbench 
+# Loading sv_std.std
+# Loading 03_sim/work.adder_32bit_sv_unit
+# Loading 03_sim/work.tbench
+# Loading 03_sim/work.pipelined
+# Loading 03_sim/work.hazard_forwarding
+# Loading 03_sim/work.PC
+# Loading 03_sim/work.pc_plus_four
+# Loading 03_sim/work.Imem
+# Loading 03_sim/work.branch_predictor
+# Loading 03_sim/work.regfile
+# Loading 03_sim/work.immgen
+# Loading 03_sim/work.control_unit
+# Loading 03_sim/work.alu
+# Loading 03_sim/work.And_module
+# Loading 03_sim/work.Or_module
+# Loading 03_sim/work.Xor_module
+# Loading 03_sim/work.adder_32bit
+# Loading 03_sim/work.full_adder
+# Loading 03_sim/work.comparator
+# Loading 03_sim/work.barrel_shifter
+# Loading 03_sim/work.brc
+# Loading 03_sim/work.lsu
+# Loading 03_sim/work.store_unit_logic
+# Loading 03_sim/work.load_unit_logic
+# Loading 03_sim/work.mux4
+# Loading 03_sim/work.driver
+# Loading 03_sim/work.scoreboard
+# ** Warning: (vsim-PLI-3003) 01_bench/tbench.sv(17): [TOFD] - System task or function '$shm_open' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# ** Warning: (vsim-PLI-3003) 01_bench/tbench.sv(18): [TOFD] - System task or function '$shm_probe' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# run -all 
+# ** Warning: (vsim-7) Failed to open readmem file "../02_test/isa_4b.hex" in read mode.
+# 
+# No such file or directory. (errno = ENOENT)    : 00_src/Imem.sv(11)
+#    Time: 0 ps  Iteration: 0  Instance: /tbench/dut/imem
+# ** Warning: (vsim-7) Failed to open readmem file "../02_test/dmem.dump" in read mode.
+# 
+# No such file or directory. (errno = ENOENT)    : 00_src/lsu.sv(32)
+#    Time: 0 ps  Iteration: 0  Instance: /tbench/dut/LSU
+# 
+# PIPELINE - ISA tests
+# 
+# 
+# Timeout...
+# 
+# ** Note: $finish    : 01_bench/tlib.svh(24)
+#    Time: 50 ns  Iteration: 0  Instance: /tbench

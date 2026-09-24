@@ -1,0 +1,131 @@
+# vsim -do {do sim.do} -c work.tbench 
+# Loading sv_std.std
+# Loading work.adder_32bit_sv_unit
+# Loading work.tbench
+# Loading work.pipelined
+# Loading work.hazard_forwarding
+# Loading work.PC
+# Loading work.pc_plus_four
+# Loading work.Imem
+# Loading work.branch_predictor
+# Loading work.regfile
+# Loading work.immgen
+# Loading work.control_unit
+# Loading work.alu
+# Loading work.And_module
+# Loading work.Or_module
+# Loading work.Xor_module
+# Loading work.adder_32bit
+# Loading work.full_adder
+# Loading work.comparator
+# Loading work.barrel_shifter
+# Loading work.brc
+# Loading work.lsu
+# Loading work.store_unit_logic
+# Loading work.load_unit_logic
+# Loading work.mux4
+# Loading work.driver
+# Loading work.scoreboard
+# ** Warning: (vsim-PLI-3003) ../01_bench/tbench.sv(17): [TOFD] - System task or function '$shm_open' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# ** Warning: (vsim-PLI-3003) ../01_bench/tbench.sv(18): [TOFD] - System task or function '$shm_probe' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# do sim.do 
+# 
+# PIPELINE - ISA tests
+# 
+# add......PASS
+# 
+# addi.....PASS
+# 
+# sub......PASS
+# 
+# and......PASS
+# 
+# andi.....PASS
+# 
+# or.......PASS
+# 
+# ori......PASS
+# 
+# xor......PASS
+# 
+# xori.....PASS
+# 
+# slt......PASS
+# 
+# slti.....PASS
+# 
+# sltu.....PASS
+# 
+# sltiu....PASS
+# 
+# sll......PASS
+# 
+# slli.....PASS
+# 
+# srl......PASS
+# 
+# srli.....PASS
+# 
+# sra......PASS
+# 
+# srai.....PASS
+# 
+# lw.......PASS
+# 
+# lh.......PASS
+# 
+# lhu......PASS
+# 
+# lb.......PASS
+# 
+# lbu......PASS
+# 
+# sw.......PASS
+# 
+# sh.......PASS
+# 
+# sb.......PASS
+# 
+# auipc....PASS
+# 
+# lui......PASS
+# 
+# beq......PASS
+# 
+# bne......PASS
+# 
+# blt......PASS
+# 
+# bltu.....PASS
+# 
+# bge......PASS
+# 
+# bgeu.....PASS
+# 
+# jal......PASS
+# 
+# jalr.....PASS
+# 
+# malgn....PASS
+# 
+# iosw.....PASS
+# 
+# 
+# =================== Result ===================
+# Total Clock Cycles Executed = 6358
+# Total Instructions Executed = 4825
+# Total Branch Instructions   = 1602
+# Total Branch Mispredictions = 713
+# 
+# ----------------------------------------------
+# Instruction Per Cycle (IPC) = 0.76
+# Branch Misprediction Rate   = 44.51 %
+# 
+# END of ISA tests
+# 
+# ** Note: $finish    : ../01_bench/scoreboard.sv(85)
+#    Time: 25484 ps  Iteration: 1  Instance: /tbench/scoreboard

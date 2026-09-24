@@ -1,0 +1,1 @@
+module pc_plus_four (    input  logic [31:0] i_pc,    output logic [31:0] o_pc_plus_four);    assign o_pc_plus_four = i_pc + 32'd4;endmodule: pc_plus_four
