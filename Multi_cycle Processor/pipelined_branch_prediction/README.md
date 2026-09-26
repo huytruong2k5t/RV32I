@@ -93,58 +93,80 @@ Khác với các thiết kế mẫu cơ bản thường gặp phải nhiều xun
 
 
 ### 🌟 6. Tích hợp Bộ Dự đoán Nhánh Động Nâng Cao (Dynamic Branch Predictor: BTB + BHT + RAS)
-Trong phiên bản nâng cấp (milestone_3_test3), vi xử lý được trang bị thêm bộ dự đoán nhánh động **ranch_predictor.sv** ngay tại tầng nạp lệnh Fetch (IF):
+Trong phiên bản nâng cấp (milestone_3_test3), vi xử lý được trang bị thêm bộ dự đoán nhánh động **branch_predictor.sv** ngay tại tầng nạp lệnh Fetch (IF):
 - **Branch Target Buffer (BTB - 256 entries):** Lưu vết địa chỉ đích (Target Address) của các lệnh nhảy, cho phép nạp lệnh tại địa chỉ rẽ nhánh ngay trong chu kỳ tiếp theo mà không cần chờ tính toán ở tầng Execute.
-- **Branch History Table (BHT - 2-bit Saturating Counter):** Máy trạng thái 4 mức thích nghi (*Strongly Not-Taken, Weakly Not-Taken, Weakly Taken, Strongly Taken*) học lịch sử rẽ nhánh để dự đoán hướng rẽ cực kỳ chuẩn xác.
-- **Return Address Stack (RAS - 8 entries):** Dự đoán tức thì địa chỉ trở về cho các hàm con (call / ret qua JAL/JALR với thanh ghi liên kết 
-a = x1/x5).
+- **Branch History Table (BHT - 2-bit Saturating Counter):** Máy trạng thái 4 mức thích nghi (*Strongly Not-Taken, Weakly Not-Taken, Weakly Taken, Strongly Taken*) kết hợp cơ chế G-share (PC ^ GHR) học lịch sử rẽ nhánh để dự đoán hướng rẽ cực kỳ chuẩn xác.
+- **Return Address Stack (RAS - 8 entries):** Dự đoán tức thì địa chỉ trở về cho các hàm con (call / ret qua JAL/JALR với thanh ghi liên kết `ra = x1/x5`). Khi tầng EX giải mã lệnh Call, địa chỉ `PC + 4` được lưu vào RAS; khi tầng IF gặp lệnh Ret (`jalr x0, 0(ra)`), địa chỉ trả về được nạp tức thì từ đỉnh RAS với độ trễ **0 chu kỳ penalty**.
+
 - **Hiệu năng đột phá so với bản gốc:**
-  - **Số chu kỳ thực thi:** Giảm mạnh từ **7,830 cycles** xuống còn **6,358 cycles** (tiết kiệm gần **1,500 chu kỳ clock**).
-  - **Tỉ lệ dự đoán sai (Misprediction Rate):** Giảm hơn một nửa, từ **90.45%** xuống chỉ còn **44.51%**.
-  - **Hiệu suất xử lý (IPC):** Tăng vọt từ **0.62** lên **0.76** (tăng trưởng **~23% hiệu năng tổng thể**).
+  - **Số chu kỳ thực thi:** Giảm mạnh từ **7,830 cycles** xuống còn **5,032 cycles** (tiết kiệm gần **2,800 chu kỳ clock**, giảm **35.7%** thời gian chạy).
+  - **Tỉ lệ dự đoán sai (Misprediction Rate):** Giảm ngoạn mục từ **90.45%** xuống chỉ còn **3.12%** (chỉ còn **50 lần** đoán sai trên tổng số 1,602 lệnh rẽ nhánh).
+  - **Hiệu suất xử lý (IPC):** Tăng vọt từ **0.62** lên **0.96** (tăng trưởng **+54.8% hiệu năng tổng thể**, tiệm cận mức lý tưởng 1.0 IPC).
 
 ---
 
 ## 4. Kiến trúc Pipeline 5 Tầng (Datapath Architecture)
 
 ```mermaid
-graph LR
-    subgraph S1 ["1. FETCH (IF)"]
-        PC["PC Register"] --> IMEM["Instruction Memory"]
-        PC --> ADD4["PC + 4 Adder"]
+graph TD
+    %% Tín hiệu điều khiển từ Control Unit
+    subgraph CU_BLK ["KHỐI ĐIỀU KHIỂN TRUNG TÂM (CONTROL UNIT)"]
+        CU["Control Unit (control_unit.sv)"]
     end
-
-    subgraph S2 ["2. DECODE (ID)"]
-        RF["Register File (32x32)"]
-        CU["Control Unit"]
-        IMG["Immediate Gen"]
+    %% Khối cập nhật địa chỉ lệnh
+    subgraph IF_STAGE ["NẠP LỆNH (FETCH)"]
+        PC["Program Counter (PC.sv)"] -->|o_pc_debug| IMEM["Instruction Memory (Imem.sv)"]
+        PC --> ADD4["PC + 4 Adder (pc_plus_four.sv)"]
+        ADD4 -->|pc_plus| MUX_PC["MUX PC Next (mux2.sv)"]
+        ALU_RES["ALU Result (alu_data)"] -->|alu_data| MUX_PC
+        MUX_PC -->|pc_next| PC
     end
-
-    subgraph S3 ["3. EXECUTE (EX)"]
-        FWD["Forwarding MUXes"]
-        ALU["ALU (Adder, Shifter, Logic)"]
-        BRC["Branch Comparator (BRC)"]
-        PCT["PC Target Generator"]
+    %% Khối giải mã và đọc thanh ghi
+    subgraph ID_STAGE ["GIẢI MÃ & THANH GHI (DECODE & REGFILE)"]
+        IMEM -->|"instr [31:0]"| CU
+        IMEM -->|instr| IMMGEN["Immediate Generator (immgen.sv)"]
+        IMEM -->|rs1_addr, rs2_addr, rd_addr| RF["Register File (regfile.sv)"]
+        RF -->|rs1_data| BRC["Branch Comparator (brc.sv)"]
+        RF -->|rs2_data| BRC
+        BRC -->|br_less, br_equal| CU
     end
-
-    subgraph S4 ["4. MEMORY (MEM)"]
-        LSU["Load Store Unit (LSU)"]
-        DMEM["64KB Data Memory"]
-        MMIO["MMIO Decoders (LED/HEX/SW)"]
+    %% Khối thực thi ALU
+    subgraph EX_STAGE ["THỰC THI (EXECUTE)"]
+        PC -->|pc_q| MUX_A["MUX Operand A (mux2.sv)"]
+        RF -->|rs1_data| MUX_A
+        RF -->|rs2_data| MUX_B["MUX Operand B (mux2.sv)"]
+        IMMGEN -->|imm| MUX_B
+        MUX_A -->|op_a| ALU["Arithmetic Logic Unit (alu.sv)"]
+        MUX_B -->|op_b| ALU
+        ALU --> ALU_RES
     end
-
-    subgraph S5 ["5. WRITEBACK (WB)"]
-        MUXWB["Writeback MUX"]
+    %% Khối truy xuất bộ nhớ và ngoại vi
+    subgraph MEM_STAGE ["TRUY XUẤT BỘ NHỚ & NGOẠI VI (LSU)"]
+        ALU_RES -->|i_lsu_addr| LSU["Load-Store Unit (lsu.sv)"]
+        RF -->|rs2_data| LSU
+        SW["i_io_sw [31:0]"] --> LSU
+        LSU -->|o_io_ledr| LEDR["Red LEDs"]
+        LSU -->|o_io_ledg| LEDG["Green LEDs"]
+        LSU -->|"o_io_hex0..7"| HEX["7-Segment Displays"]
+        LSU -->|o_io_lcd| LCD["LCD Display"]
+        LSU -->|ld_data| MUX_WB["MUX Writeback (mux4.sv)"]
     end
-
-    S1 -->|IF/ID Latch| S2
-    S2 -->|ID/EX Latch| S3
-    S3 -->|EX/MEM Latch| S4
-    S4 -->|MEM/WB Latch| S5
-    S5 -.->|Write Back to RF| RF
-    S4 -.->|MEM Forward Data| FWD
-    S5 -.->|WB Forward Data| FWD
-    S3 -.->|Next PC & Flush Control| S1
+    %% Khối ghi trả Writeback
+    subgraph WB_STAGE ["GHI TRẢ DỮ LIỆU (WRITEBACK)"]
+        ADD4 -->|"d0: pc_plus"| MUX_WB
+        ALU_RES -->|"d1: alu_data"| MUX_WB
+        MUX_WB -->|rd_data| RF
+    end
+    %% Đường điều khiển
+    CU -.->|pc_sel| MUX_PC
+    CU -.->|opa_sel| MUX_A
+    CU -.->|opb_sel| MUX_B
+    CU -.->|alu_op| ALU
+    CU -.->|mem_wren| LSU
+    CU -.->|wb_sel| MUX_WB
+    CU -.->|rd_wren| RF
+    CU -.->|br_un| BRC
+    CU -.->|o_insn_vld| VLD["o_insn_vld (Valid Flag)"]
 ```
 
 ### Chi tiết các tầng:
@@ -199,11 +221,16 @@ Khối `hazard_forwarding.sv` chịu trách nhiệm phân tích và xử lý m�
 ## 7. Cấu trúc Thư mục Dự án
 
 ```text
-milestone_3_test/
+milestone_3_test3/
 ├── 00_src/                     # Mã nguồn thiết kế phần cứng (SystemVerilog)
-│   ├── pipelined.sv            # Top-level module kết nối 5 tầng pipeline
+│   ├── pipelined.sv            # Top-level module kết nối 5 tầng pipeline (Structural)
 │   ├── hazard_forwarding.sv    # Đơn vị kiểm soát Hazard & Forwarding
+│   ├── branch_predictor.sv     # Bộ dự đoán rẽ nhánh động (Gshare + BTB + RAS)
+│   ├── branch_eval.sv          # Khối đánh giá rẽ nhánh & phát hiện misprediction (EX)
 │   ├── control_unit.sv         # Khối giải mã lệnh & tạo tín hiệu điều khiển
+│   ├── pc_target.sv            # Bộ chọn Next-PC (PC+4 / Predict / Redirect)
+│   ├── PC.sv                   # Thanh ghi Program Counter
+│   ├── pc_plus_four.sv         # Bộ tính PC + 4
 │   ├── alu.sv                  # Đơn vị số học logic (ALU)
 │   ├── adder_32bit.sv          # Bộ cộng 32-bit phân tầng
 │   ├── full_adder.sv           # Bộ cộng toàn phần 1-bit
@@ -215,12 +242,9 @@ milestone_3_test/
 │   ├── lsu.sv                  # Đơn vị truy xuất bộ nhớ và ngoại vi (LSU)
 │   ├── load_unit_logic.sv      # Xử lý cắt gọt dữ liệu đọc (LB, LH, LW...)
 │   ├── store_unit_logic.sv     # Xử lý mask ghi byte bộ nhớ (SB, SH, SW...)
-│   ├── PC.sv                   # Thanh ghi Program Counter
-│   ├── pc_plus_four.sv         # Bộ tính PC + 4
-│   ├── pc_target.sv            # Bộ tính địa chỉ đích nhảy (Branch/JAL/JALR)
 │   ├── Imem.sv                 # Bộ nhớ nạp lệnh (ROM)
-│   ├── mux4.sv                 # MUX 4 ngõ vào 32-bit
-│   └── ...
+│   ├── mux2.sv                 # MUX 2 ngõ vào parameterized
+│   └── mux4.sv                 # MUX 4 ngõ vào parameterized
 ├── 01_bench/                   # Môi trường kiểm thử (Testbench Verification)
 │   ├── tbench.sv               # Top testbench kết nối DUT
 │   ├── scoreboard.sv           # Khối theo dõi, chấm điểm và tính IPC
@@ -249,12 +273,12 @@ Bộ xử lý đã được kiểm thử toàn diện thông qua bộ testbench 
 | :--- | :---: | :---: | :---: |
 | **Số bài test ISA vượt qua** | **39 / 39 (100% PASS)** | **39 / 39 (100% PASS)** | Hoàn hảo |
 | **Tổng số lệnh thực thi** | 4,825 | 4,825 | Chuẩn xác |
-| **Tổng chu kỳ clock (Cycles)** | **7,830** | **6,358** | **Giảm 18.8% chu kỳ** |
-| **Số lần rẽ nhánh đoán sai** | 1,449 | **713** | **Giảm 50.8% lỗi rẽ nhánh** |
-| **Tỉ lệ đoán sai (Mispred Rate)**| 90.45 % | **44.51 %** | **Giảm hơn một nửa** |
-| **Instructions Per Cycle (IPC)**| **0.62** | **0.76** | **Tăng trưởng +22.6%** |
+| **Tổng chu kỳ clock (Cycles)** | **7,830** | **5,032** | **Giảm 35.7% chu kỳ** |
+| **Số lần rẽ nhánh đoán sai** | 1,449 | **50** | **Giảm 96.5% lỗi rẽ nhánh** |
+| **Tỉ lệ đoán sai (Mispred Rate)**| 90.45 % | **3.12 %** | **Giảm vượt bậc (-87.3%)** |
+| **Instructions Per Cycle (IPC)**| **0.62** | **0.96** | **Tăng trưởng +54.8%** |
 
-`	ext
+```text
 ===================================================
 Kết quả kiểm thử thực tế trên ModelSim (CLI Mode):
 ===================================================
@@ -268,8 +292,18 @@ sh.......PASS   sb.......PASS   auipc....PASS   lui......PASS   beq......PASS
 bne......PASS   blt......PASS   bltu.....PASS   bge......PASS   bgeu.....PASS
 jal......PASS   jalr.....PASS   malgn....PASS   iosw.....PASS
 
+=================== Result ===================
+Total Clock Cycles Executed = 5032
+Total Instructions Executed = 4825
+Total Branch Instructions   = 1602
+Total Branch Mispredictions = 50
+
+----------------------------------------------
+Instruction Per Cycle (IPC) = 0.96
+Branch Misprediction Rate   = 3.12 %
+
 END of ISA tests: 39 / 39 PASSED (100%)
-`
+```
 
 ---
 
@@ -300,7 +334,7 @@ Mở terminal (PowerShell hoặc Command Prompt) tại thư mục gốc của pr
 ---
 
 ## 👥 Tác giả & Đóng góp
-Dự án được thực hiện bởi nhóm sinh viên **Trường Đại học Bách Khoa - ĐHQG TP.HCM**:
-- **Môn học:** Kiến trúc Máy tính (COD) — Mã môn: EE3203
-- **Khoa & Bộ môn:** Bộ môn Điện tử — Khoa Điện - Điện tử
-- **Nhiệm vụ:** Hiện thực toàn bộ Datapath, Control Unit, Hazard Unit, LSU, Branch Predictor và tối ưu kiến trúc Pipeline RV32I.
+- **Tác giả:** Trương Đào Đan Huy
+- **Đồ án môn học:** Kiến trúc Máy tính (COD) — EE3203 (Computer Organization and Design)
+- **Khoa & Bộ môn:** Bộ môn Điện tử — Khoa Điện - Điện tử, Trường Đại học Bách Khoa - ĐHQG TP.HCM (HCMUT)
+- **Nhiệm vụ:** Hiện thực toàn bộ Datapath, Control Unit, Hazard Unit, LSU, Dynamic Branch Predictor (G-share + RAS) và tối ưu hóa kiến trúc Pipeline RV32I.

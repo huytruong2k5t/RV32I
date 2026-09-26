@@ -1,9 +1,23 @@
+//-----------------------------------------------------------------------------
+// File          : load_unit_logic.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         :
+// Project       : 32-bit RISC-V Pipelined Processor
+// Creation Date : 2025-11-26
+//
+// Description   : Load data formatting unit handling sign-extension and
+//                 zero-extension for LB, LH, LW, LBU, and LHU instructions.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module load_unit_logic (
-    input  logic [31:0] i_rdata,      // RAM data (đã được byte-align từ LSU)
-    input  logic [31:0] i_addr,       // address
-    input  logic [2:0]  i_funct3,     // funct3 load
-    input  logic        is_load,      // LOAD detect
-    output logic [31:0] o_ld_dataout  // sign/zero-extend
+    input  logic [31:0] i_rdata,      // RAM data (byte-aligned from LSU)
+    input  logic [31:0] i_addr,       // Address offset (unused in current alignment)
+    input  logic [2:0]  i_funct3,     // funct3 load selector
+    input  logic        is_load,      // Load operation indicator
+    output logic [31:0] o_ld_dataout  // Formatted sign/zero-extended output
 );
 
     always_comb begin
@@ -20,4 +34,4 @@ module load_unit_logic (
         end
     end
 
-endmodule
+endmodule : load_unit_logic

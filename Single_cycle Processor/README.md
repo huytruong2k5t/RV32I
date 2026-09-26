@@ -94,7 +94,7 @@ graph TD
 
     %% Khối giải mã và đọc thanh ghi
     subgraph ID_STAGE ["GIẢI MÃ & THANH GHI (DECODE & REGFILE)"]
-        IMEM -->|instr [31:0]| CU
+        IMEM -->|"instr [31:0]"| CU
         IMEM -->|instr| IMMGEN["Immediate Generator (immgen.sv)"]
         IMEM -->|rs1_addr, rs2_addr, rd_addr| RF["Register File (regfile.sv)"]
         RF -->|rs1_data| BRC["Branch Comparator (brc.sv)"]
@@ -121,15 +121,15 @@ graph TD
         SW["i_io_sw [31:0]"] --> LSU
         LSU -->|o_io_ledr| LEDR["Red LEDs"]
         LSU -->|o_io_ledg| LEDG["Green LEDs"]
-        LSU -->|o_io_hex0..7| HEX["7-Segment Displays"]
+        LSU -->|"o_io_hex0..7"| HEX["7-Segment Displays"]
         LSU -->|o_io_lcd| LCD["LCD Display"]
         LSU -->|ld_data| MUX_WB["MUX Writeback (mux4.sv)"]
     end
 
     %% Khối ghi trả Writeback
     subgraph WB_STAGE ["GHI TRẢ DỮ LIỆU (WRITEBACK)"]
-        ADD4 -->|d0: pc_plus| MUX_WB
-        ALU_RES -->|d1: alu_data| MUX_WB
+        ADD4 -->|"d0: pc_plus"| MUX_WB
+        ALU_RES -->|"d1: alu_data"| MUX_WB
         %% ld_data đã nối từ LSU
         MUX_WB -->|rd_data| RF
     end

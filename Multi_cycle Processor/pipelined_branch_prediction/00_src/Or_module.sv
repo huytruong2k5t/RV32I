@@ -1,7 +1,22 @@
-module Or_module(
-	 input logic [31:0] Or_A, Or_B,
-	 output logic [31:0] Or_kq
+//-----------------------------------------------------------------------------
+// File          : Or_module.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         :
+// Project       : 32-bit RISC-V Pipelined Processor
+// Creation Date : 2025-11-21
+//
+// Description   : 32-bit bitwise OR operation module for the ALU.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
+module Or_module (
+    input  logic [31:0] i_a,
+    input  logic [31:0] i_b,
+    output logic [31:0] o_data
 );
 
-assign Or_kq = Or_A | Or_B; 
-endmodule 
+    assign o_data = i_a | i_b;
+
+endmodule : Or_module

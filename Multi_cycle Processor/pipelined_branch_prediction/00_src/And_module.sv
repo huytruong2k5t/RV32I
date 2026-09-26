@@ -1,7 +1,22 @@
-module And_module(
-	 input logic [31:0] And_A, And_B,
-	 output logic [31:0] And_kq
+//-----------------------------------------------------------------------------
+// File          : And_module.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         :
+// Project       : 32-bit RISC-V Pipelined Processor
+// Creation Date : 2025-11-21
+//
+// Description   : 32-bit bitwise AND operation module for the ALU.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
+module And_module (
+    input  logic [31:0] i_a,
+    input  logic [31:0] i_b,
+    output logic [31:0] o_data
 );
 
-assign And_kq = And_A & And_B; 
-endmodule 
+    assign o_data = i_a & i_b;
+
+endmodule : And_module
