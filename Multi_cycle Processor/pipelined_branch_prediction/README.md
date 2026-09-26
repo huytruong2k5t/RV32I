@@ -3,12 +3,11 @@
 [![RISC-V](https://img.shields.io/badge/ISA-RISC--V%20RV32I-blue.svg)](https://riscv.org/)
 [![HDL](https://img.shields.io/badge/Language-SystemVerilog-brightgreen.svg)]()
 [![Simulator](https://img.shields.io/badge/Simulator-ModelSim%20Altera-orange.svg)]()
-[![EDA](https://img.shields.io/badge/EDA-Cadence%20Xcelium-red.svg)]()
 [![Tests](https://img.shields.io/badge/ISA%20Tests-39%2F39%20PASS%20(100%25)-success.svg)]()
-[![Institution](https://img.shields.io/badge/HCMUT-Computer%20Engineering-red.svg)](https://cse.hcmut.edu.vn/)
+[![Institution](https://img.shields.io/badge/HCMUT-Faculty%20of%20Electrical%20%26%20Electronics-red.svg)](https://fee.hcmut.edu.vn/)
 
-> **Đồ án môn học:** Kiến trúc và Thiết kế Máy tính (Computer Organization and Design - CO2007)  
-> **Khoa Khoa học và Kỹ thuật Máy tính — Trường Đại học Bách Khoa - ĐHQG TP.HCM (HCMUT)**  
+> **Đồ án môn học:** Kiến trúc Máy tính (COD) — EE3203 (Computer Organization and Design)  
+> **Khoa:** Khoa Điện - Điện tử | **Bộ môn:** Bộ môn Điện tử — **Trường Đại học Bách Khoa - ĐHQG TP.HCM (HCMUT)**  
 > **Milestone 3:** Thiết kế, hiện thực và kiểm thử bộ vi xử lý 32-bit RISC-V dạng Pipeline 5 tầng có Forwarding, Hazard Detection & I/O Peripherals.
 
 ---
@@ -87,8 +86,8 @@ Khác với các thiết kế mẫu cơ bản thường gặp phải nhiều xun
 
 ### 🌟 5. Tự động hóa Mô phỏng với 1 Câu lệnh (`run_sim.bat`)
 - Tích hợp sẵn bộ script chạy batch thông minh:
-  - `.\run_sim.bat`: Chạy nhanh ở chế độ Command Line, in kết quả 39 bài test và thống kê IPC trong vài giây.
-  - `.\run_sim.bat gui`: Mở ngay giao diện trực quan ModelSim Waveform đã nạp sẵn toàn bộ tín hiệu các tầng IF, ID, EX, MEM, WB để debug.
+  - `.\03_sim\run_sim.bat`: Chạy nhanh ở chế độ Command Line, in kết quả 39 bài test và thống kê IPC trong vài giây.
+  - `.\03_sim\run_sim.bat gui`: Mở ngay giao diện trực quan ModelSim Waveform đã nạp sẵn toàn bộ tín hiệu các tầng IF, ID, EX, MEM, WB để debug.
 
 ---
 
@@ -231,9 +230,10 @@ milestone_3_test/
 │   ├── imem.dump               # File mã máy chương trình kiểm thử
 │   └── dmem.dump               # Dữ liệu khởi tạo ban đầu cho RAM
 ├── 03_sim/                     # Thư mục làm việc mô phỏng của ModelSim
+│   ├── run_sim.bat             # Script chạy nhanh 1 chạm (Hỗ trợ CLI & GUI)
 │   ├── sim.do                  # Script mô phỏng CLI
 │   └── gui.do                  # Script mở sóng dạng Waveform
-├── run_sim.bat                 # Script chạy nhanh 1 chạm (Hỗ trợ CLI & GUI)
+├── run_sim.bat                 # Script chạy mô phỏng nhanh từ thư mục gốc
 └── README.md                   # Tài liệu hướng dẫn và giới thiệu dự án
 ```
 
@@ -275,65 +275,32 @@ END of ISA tests: 39 / 39 PASSED (100%)
 
 ## 9. Hướng dẫn Biên dịch & Mô phỏng (Quick Start)
 
-Dự án hỗ trợ 2 môi trường mô phỏng linh hoạt: **ModelSim (Windows)** và **Cadence Xcelium / SimVision (Linux/Server EDA)**.
+### Yêu cầu hệ thống:
+- Hệ điều hành: Windows 10/11.
+- Phần mềm: **ModelSim** (Altera Starter Edition 10.1d hoặc mới hơn). Đảm bảo `vsim` đã được thêm vào biến môi trường `PATH`.
 
----
+### Cách thực hiện:
 
-### Cách 1: Sử dụng ModelSim trên Windows (Khuyên dùng cho cá nhân)
-Tích hợp sẵn kịch bản batch tự động dọn dẹp thư viện `work`, biên dịch mã nguồn và chạy toàn bộ 39 bài test:
+#### 1. Chạy kiểm thử tự động (Command Line Interface - Nhanh nhất):
+Mở terminal (PowerShell hoặc Command Prompt) tại thư mục gốc của project và gõ:
+```powershell
+.\run_sim.bat
+```
+*(hoặc `.\03_sim\run_sim.bat`)*  
+*Kết quả các bài test PASS sẽ hiển thị trực tiếp trên màn hình console.*
 
-1. **Chế độ dòng lệnh (CLI Mode - Nhanh nhất):**
-   Mở PowerShell hoặc Command Prompt tại thư mục gốc của project:
-   ```powershell
-   .\run_sim.bat
-   ```
-   *Màn hình console sẽ tự động in kết quả 39 bài test PASS và bảng đo lường IPC.*
-
-2. **Chế độ giao diện đồ họa sóng (GUI Waveforms Mode):**
-   ```powershell
-   .\run_sim.bat gui
-   ```
-   *ModelSim sẽ tự động bật lên, load sẵn danh sách tín hiệu các tầng IF, ID, EX, MEM, WB và dừng ở thời điểm hoàn tất.*
-
----
-
-### Cách 2: Sử dụng Cadence Xcelium & SimVision (Chuẩn Công nghiệp EDA)
-Trong thư mục `03_sim/` đã được cấu hình sẵn **`makefile`** chuyên dụng cho công cụ mô phỏng chuẩn công nghiệp **Cadence Xcelium (`xrun`)** và trình xem sóng **SimVision**:
-
-1. **Tạo / Cập nhật danh sách tệp nguồn (`flist.f`):**
-   ```bash
-   cd 03_sim
-   make create_filelist
-   ```
-   *Lệnh này tự động quét tất cả tệp trong `00_src/` và `01_bench/`, sắp xếp thứ tự phụ thuộc và xuất ra tệp `flist.f` kèm cờ `-sv -timescale 1ns/100ps`.*
-
-2. **Chạy mô phỏng dòng lệnh với Cadence Xcelium:**
-   ```bash
-   make sim
-   ```
-   *Lệnh thực thi: `xrun -access +rwc -f ./flist.f`*
-
-3. **Mở giao diện mô phỏng tương tác (Interactive Debugging GUI):**
-   ```bash
-   make gui
-   ```
-   *Lệnh thực thi: `xrun -gui -access +rwc -f ./flist.f -input restore.tcl`*
-
-4. **Xem dạng sóng đã lưu với SimVision:**
-   ```bash
-   make wave
-   ```
-   *Khởi chạy `simvision wave.shm &` để phân tích cơ sở dữ liệu sóng SHM được xuất tự động từ `$shm_open("wave.shm")` và `$shm_probe(dut, "AS")` trong `tbench.sv`.*
-
-5. **Dọn dẹp môi trường (Clean up):**
-   ```bash
-   make clean
-   ```
-   *Xóa sạch các file log, database sóng và thư mục biên dịch tạm: `rm -rf x* *.vcd *.shm *.log`.*
+#### 2. Mở giao diện sóng đồ họa (ModelSim GUI Mode):
+Để phân tích dạng sóng (Waveform), timing và chuyển dịch dữ liệu qua các tầng pipeline:
+```powershell
+.\run_sim.bat gui
+```
+*(hoặc `.\03_sim\run_sim.bat gui`)*  
+*ModelSim sẽ tự động mở lên, cấu hình sẵn cấu trúc tín hiệu các tầng IF, ID, EX, MEM, WB và chạy đến điểm dừng hoàn tất.*
 
 ---
 
 ## 👥 Tác giả & Đóng góp
 Dự án được thực hiện bởi nhóm sinh viên **Trường Đại học Bách Khoa - ĐHQG TP.HCM**:
-- Giảng viên phụ trách môn học: Bộ môn Kỹ thuật Máy tính - Khoa KH&KT Máy tính.
-- Hiện thực toàn bộ Datapath, Control Unit, Hazard Unit, LSU và tối ưu kiến trúc Pipeline RV32I.
+- **Môn học:** Kiến trúc Máy tính (COD) — Mã môn: EE3203
+- **Khoa & Bộ môn:** Bộ môn Điện tử — Khoa Điện - Điện tử
+- **Nhiệm vụ:** Hiện thực toàn bộ Datapath, Control Unit, Hazard Unit, LSU, Branch Predictor và tối ưu kiến trúc Pipeline RV32I.
