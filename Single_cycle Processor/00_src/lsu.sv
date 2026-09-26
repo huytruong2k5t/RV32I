@@ -108,10 +108,24 @@ module lsu (
     // Load logic
     logic [31:0] ld_data_logic;
     
+    logic [31:0] mem_rdata;
+    logic [31:0] next_word;
+    assign next_word = (word_addr < 511) ? data_mem[word_addr + 1] : 32'h0;
+    logic [63:0] d64;
+    assign d64 = {next_word, data_mem[word_addr]};
+
+    always_comb begin
+        if (i_funct3 == 3'b010) // LW
+        // Indexed Vector Part-Select
+            mem_rdata = d64[i_lsu_addr[1:0]*8 +: 32];
+        else
+            mem_rdata = data_mem[word_addr];
+    end
+
     always_comb begin
         ld_data_logic = 32'h0;
         if (mem_en)
-            ld_data_logic =  data_mem[word_addr];
+            ld_data_logic =  mem_rdata;
         else if (sw_en) 
             ld_data_logic = i_io_sw;
         else if (ledr_en) 

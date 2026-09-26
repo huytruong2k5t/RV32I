@@ -11,28 +11,22 @@ module regfile (
 );
 
   logic [31:0] register_rf [31:0];
-  integer i;
 
-  // Output read ports
-  always_comb begin
-    //output 1
-    o_rs1_data = register_rf[i_rs1_addr];
-	 //output 2
-    o_rs2_data = register_rf[i_rs2_addr];
-  end
+  // Output read ports (Hardwired x0 to 0)
+  assign o_rs1_data = (i_rs1_addr == 5'b0) ? 32'b0 : register_rf[i_rs1_addr];
+  assign o_rs2_data = (i_rs2_addr == 5'b0) ? 32'b0 : register_rf[i_rs2_addr];
 
-  // Write & Reset
+  // Write & Synchronous Reset
   always_ff @(posedge i_clk) begin
     if (!i_reset) begin
       // Reset all registers to 0
-      for (i = 0; i < 32; i = i + 1)
+      for (int i = 0; i < 32; i++) begin
         register_rf[i] <= 32'b0;
-    end 
-	 else if (i_rd_wren && (i_rd_addr != 5'b0)) begin
+      end
+    end else if (i_rd_wren && (i_rd_addr != 5'b0)) begin
       // Write if not x0
       register_rf[i_rd_addr] <= i_rd_data;
     end
   end
 
-endmodule
-         
+endmodule : regfile

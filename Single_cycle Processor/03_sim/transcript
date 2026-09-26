@@ -1,0 +1,122 @@
+# vsim -do {run -all; quit} -c tbench 
+# Loading sv_std.std
+# Loading work.tlib_svh_unit
+# Loading work.tbench
+# Loading work.single_cycle
+# Loading work.control_unit
+# Loading work.mux2
+# Loading work.PC
+# Loading work.pc_plus_four
+# Loading work.Imem
+# Loading work.regfile
+# Loading work.immgen
+# Loading work.brc
+# Loading work.adder_32bit
+# Loading work.full_adder
+# Loading work.alu
+# Loading work.And_module
+# Loading work.Or_module
+# Loading work.Xor_module
+# Loading work.comparator
+# Loading work.barrel_shifter
+# Loading work.lsu
+# Loading work.store_unit_logic
+# Loading work.load_unit_logic
+# Loading work.mux4
+# Loading work.scoreboard
+# Loading work.driver
+# ** Warning: (vsim-PLI-3003) ../01_bench/tbench.sv(20): [TOFD] - System task or function '$shm_open' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# ** Warning: (vsim-PLI-3003) ../01_bench/tbench.sv(21): [TOFD] - System task or function '$shm_probe' is not defined.
+# 
+#         Region: /tbench/proc_dump_shm
+# run -all 
+# ** Warning: (vsim-PLI-3407) Too many data words read on line 513 of file "../02_test/dmem.dump". (Current address [512], address range [0:511])    : ../00_src/lsu.sv(29)
+#    Time: 0 ps  Iteration: 0  Instance: /tbench/dut/Lsu
+# 
+# SINGLE CYCLE - ISA test
+# 
+# add......PASS
+# 
+# addi.....PASS
+# 
+# sub......PASS
+# 
+# and......PASS
+# 
+# andi.....PASS
+# 
+# or.......PASS
+# 
+# ori......PASS
+# 
+# xor......PASS
+# 
+# xori.....PASS
+# 
+# slt......PASS
+# 
+# slti.....PASS
+# 
+# sltu.....PASS
+# 
+# sltiu....PASS
+# 
+# sll......PASS
+# 
+# slli.....PASS
+# 
+# srl......PASS
+# 
+# srli.....PASS
+# 
+# sra......PASS
+# 
+# srai.....PASS
+# 
+# lw.......PASS
+# 
+# lh.......PASS
+# 
+# lhu......PASS
+# 
+# lb.......PASS
+# 
+# lbu......PASS
+# 
+# sw.......PASS
+# 
+# sh.......PASS
+# 
+# sb.......PASS
+# 
+# auipc....PASS
+# 
+# lui......PASS
+# 
+# beq......PASS
+# 
+# bne......PASS
+# 
+# blt......PASS
+# 
+# bltu.....PASS
+# 
+# bge......PASS
+# 
+# bgeu.....PASS
+# 
+# jal......PASS
+# 
+# jalr.....PASS
+# 
+# malgn....PASS
+# 
+# iosw.....PASS
+# 
+# 
+# END of ISA test
+# 
+# ** Note: $finish    : ../01_bench/scoreboard.sv(33)
+#    Time: 19398 ps  Iteration: 1  Instance: /tbench/scoreboard

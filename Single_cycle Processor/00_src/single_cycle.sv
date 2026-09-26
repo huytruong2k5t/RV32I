@@ -1,11 +1,11 @@
 module single_cycle(
 	input logic i_clk, i_reset, 
 	input logic [31:0]    i_io_sw,
-	output logic [31:0]   o_pc_debug,  o_io_ledr, o_io_ledg,  o_io_lcd,
+	output logic [31:0]   o_pc_debug,  o_io_ledr, o_io_ledg,  o_io_lcd, 
 	output logic [6:0]   o_io_hex0, o_io_hex1, o_io_hex2, o_io_hex3, o_io_hex4, o_io_hex5, o_io_hex6, o_io_hex7,
 	output logic o_insn_vld
 	);
-	
+	//assign instruction = instr;
 logic [31:0] pc_q, pc_plus, pc_next;
 logic [31:0] rs1_data, rs2_data;
 logic [31:0] instr;
@@ -60,9 +60,9 @@ PC pc (
   assign o_pc_debug = pc_q;
 
 //======= KHOI PC+4==========
-pc_plus4 pc_4 (
+pc_plus_four pc_4 (
   .i_pc  (pc_q),
-  .o_pc4 (pc_plus)
+  .o_pc_plus_four (pc_plus)
 );
 
 //======= I$ ==========

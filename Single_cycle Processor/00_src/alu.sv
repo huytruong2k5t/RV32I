@@ -23,6 +23,7 @@ module alu (
   logic [31:0] and_kq;
   logic [31:0] or_kq;
   logic [31:0] xor_kq;
+  logic v0;
   logic sel_sub; 
   assign sel_sub = &(i_alu_op ^~ SUB);
   logic sel_srl;
@@ -62,19 +63,27 @@ module alu (
   );  
 ////=======NHOM CAU LENH ADD/SUB/LUI======
 logic [31:0] op_a;
- always_comb begin
- 	case(i_alu_op)
-	LUI: op_a = 32'b0;
-	default: op_a = i_op_a;
-	endcase
+logic [31:0] op_b;
+
+always_comb begin
+  case(i_alu_op)
+    LUI:     op_a = 32'b0;
+    default: op_a = i_op_a;
+  endcase
+
+  if (sel_sub)
+    op_b = ~i_op_b;
+  else
+    op_b = i_op_b;
 end
 
-  FA32 FA_32bit (
-    .FA32_A  (op_a),
-    .FA32_B  (i_op_b),
-    .FA32_T  (sel_sub),
-    .FA32_S  (FA_o),
-    .FA32_C_o(FA_co)
+  adder_32bit FA_32bit (
+    .a    (op_a),
+    .b    (op_b),
+    .cin  (sel_sub),
+    .sum  (FA_o),
+    .cout (FA_co),
+    .v    (v0)
   );
 
  //======SLT/SLTU==========

@@ -6,7 +6,7 @@ module comparator (
 );
     logic [31:0] b_complement;
 	 assign b_complement = ~B;  // Bù 1, +1 qua cin
-	 logic [31:0] diff;
+	 logic [31:0] diff;	
 	 logic        carry_out,v_out;
 
 		adder_32bit adder_instruction (
