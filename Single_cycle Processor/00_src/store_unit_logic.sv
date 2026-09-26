@@ -1,9 +1,22 @@
+//-----------------------------------------------------------------------------
+// File          : store_unit_logic.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 24/10/2025
+//
+// Description   : Store unit logic generating byte-write enable mask and aligned store data.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module store_unit_logic (
-    input  logic [31:0] i_st_data,  
-    input  logic [31:0] i_addr,      
+    input  logic [31:0] i_st_data,
+    input  logic [31:0] i_addr,
     input  logic [2:0]  i_funct3,    // funct3:  SB/SH/SW
     input  logic [6:0]  i_opcode,    // opcode STORE
-    output logic [31:0] o_st_data,   //  memory
+    output logic [31:0] o_st_data,   // write data to memory
     output logic [3:0]  o_bmask      // byte-enable mask
 );
 
@@ -19,17 +32,17 @@ module store_unit_logic (
     assign is_sw = (~i_funct3[2]) &  (i_funct3[1]) & (~i_funct3[0]);
 
 
-    //byte/halfword
+    // byte/halfword address bits
     logic addr_bit0, addr_bit1;
     assign addr_bit0 = i_addr[0];
     assign addr_bit1 = i_addr[1];
 
-    //Tạo dữ liệu ghi (o_st_data) và mặt nạ byte (o_bmask)
+    // Generate write data (o_st_data) and byte mask (o_bmask)
     always_comb begin
         o_st_data = 32'h0;
         o_bmask   = 4'b0000;
 
-        // Lệnh SB - Store Byte
+        // SB instruction - Store Byte
         if (is_sb) begin
             if (~addr_bit1 & ~addr_bit0) begin
                 o_st_data = {24'h0, i_st_data[7:0]};
@@ -49,7 +62,7 @@ module store_unit_logic (
             end
         end
 
-        // Lệnh SH - Store Halfword
+        // SH instruction - Store Halfword
         else if (is_sh) begin
             if (~addr_bit1) begin
                 o_st_data = {16'h0, i_st_data[15:0]};
@@ -61,7 +74,7 @@ module store_unit_logic (
             end
         end
 
-        // Lệnh SW - Store Word
+        // SW instruction - Store Word
         else if (is_sw) begin
             o_st_data = i_st_data;
             o_bmask   = 4'b1111;

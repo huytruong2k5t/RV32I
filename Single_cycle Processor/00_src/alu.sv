@@ -1,3 +1,16 @@
+//-----------------------------------------------------------------------------
+// File          : alu.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 23/10/2025
+//
+// Description   : Arithmetic Logic Unit (ALU) supporting RV32I arithmetic and logic operations.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module alu (
     input  logic [31:0] i_op_a,
     input  logic [31:0] i_op_b,
@@ -19,7 +32,7 @@ module alu (
       SRA  = 4'b1001,
       LUI  = 4'b1010;
 
-//=====KET QUA TRUNG GIAN======
+//===== INTERMEDIATE SIGNALS ======
   logic [31:0] and_kq;
   logic [31:0] or_kq;
   logic [31:0] xor_kq;
@@ -61,7 +74,7 @@ module alu (
     .Xor_B  (i_op_b),
     .Xor_kq (xor_kq)
   );  
-////=======NHOM CAU LENH ADD/SUB/LUI======
+//======= ADD/SUB/LUI INSTRUCTION GROUP ======
 logic [31:0] op_a;
 logic [31:0] op_b;
 
@@ -89,14 +102,14 @@ end
  //======SLT/SLTU==========
   comparator Bo_so_sanh(
     .A(i_op_a), 
-	 .B(i_op_b),
+     .B(i_op_b),
     .less_s(less_s), 
-	 .less_u(less_u)
+     .less_u(less_u)
   );
   assign slt_kq = {31'b0, less_s};
   assign sltu_kq = {31'b0, less_u};
  
- //====CAC CAU LENH DICH=======
+ //==== SHIFT INSTRUCTIONS ====
    barrel_shifter Bo_dich_bit(
     .in   (i_op_a),
     .shamt(i_op_b[4:0]),
@@ -105,7 +118,7 @@ end
     .out  (shft_o)
   );
 
-//=====MUX CHON KET QUA======
+//===== RESULT SELECTION MUX ======
   always_comb begin
     case (i_alu_op)
       ADD  : o_alu_data = FA_o;

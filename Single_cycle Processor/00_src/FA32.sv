@@ -1,6 +1,20 @@
+//-----------------------------------------------------------------------------
+// File          : FA32.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 22/10/2025
+//
+// Description   : 32-bit ripple-carry adder/subtractor built with 32 1-bit full adders.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module FA32 (
-    input  logic [31:0] FA32_A, FA32_B,
-    input  logic        FA32_T,          
+    input  logic [31:0] FA32_A,
+    input  logic [31:0] FA32_B,
+    input  logic        FA32_T,
     output logic [31:0] FA32_S,
     output logic        FA32_C_o
 );

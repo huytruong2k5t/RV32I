@@ -1,11 +1,35 @@
+//-----------------------------------------------------------------------------
+// File          : single_cycle.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 28/10/2025
+//
+// Description   : Top-level RISC-V 32I single-cycle processor datapath and control.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module single_cycle(
-	input logic i_clk, i_reset, 
-	input logic [31:0]    i_io_sw,
-	output logic [31:0]   o_pc_debug,  o_io_ledr, o_io_ledg,  o_io_lcd, 
-	output logic [6:0]   o_io_hex0, o_io_hex1, o_io_hex2, o_io_hex3, o_io_hex4, o_io_hex5, o_io_hex6, o_io_hex7,
-	output logic o_insn_vld
-	);
-	//assign instruction = instr;
+    input  logic        i_clk,
+    input  logic        i_reset,
+    input  logic [31:0] i_io_sw,
+    output logic [31:0] o_pc_debug,
+    output logic [31:0] o_io_ledr,
+    output logic [31:0] o_io_ledg,
+    output logic [31:0] o_io_lcd,
+    output logic [6:0]  o_io_hex0,
+    output logic [6:0]  o_io_hex1,
+    output logic [6:0]  o_io_hex2,
+    output logic [6:0]  o_io_hex3,
+    output logic [6:0]  o_io_hex4,
+    output logic [6:0]  o_io_hex5,
+    output logic [6:0]  o_io_hex6,
+    output logic [6:0]  o_io_hex7,
+    output logic        o_insn_vld
+    );
+    //assign instruction = instr;
 logic [31:0] pc_q, pc_plus, pc_next;
 logic [31:0] rs1_data, rs2_data;
 logic [31:0] instr;
@@ -49,7 +73,7 @@ assign not_rst = i_reset;
     .y  (pc_next)
   );
  
-//====KHOI PC======
+//==== PC MODULE ====
 PC pc (
   .i_clk (i_clk),
   .i_reset(i_reset),
@@ -59,13 +83,13 @@ PC pc (
 
   assign o_pc_debug = pc_q;
 
-//======= KHOI PC+4==========
+//======= PC+4 MODULE ==========
 pc_plus_four pc_4 (
   .i_pc  (pc_q),
   .o_pc_plus_four (pc_plus)
 );
 
-//======= I$ ==========
+//======= INSTRUCTION MEMORY (I$) ==========
 Imem I$ (
   .i_clk   (i_clk),
   .i_reset (i_reset),          
@@ -100,7 +124,7 @@ brc Brc (
   
   assign o_insn_vld = valid_instr; 
   
-//========== MUX CHON THANH GHI ==============
+//========== OPERAND SELECTION MUXES ==============
   mux2 #(32) MUX_OPA (.a(pc_q), .b(rs1_data),  .sel(opa_sel), .y(op_a));
   // 0->rs2, 1->imm
   mux2 #(32) MUX_OPB (.a(rs2_data), .b(imm),   .sel(opb_sel), .y(op_b));
@@ -121,8 +145,8 @@ brc Brc (
     .i_st_data   (rs2_data),
     .i_lsu_wren  (mem_wren),
     .o_ld_data   (ld_data),
-	 .i_funct3 (fuct3),
-	.i_opcode (opcode),
+     .i_funct3 (fuct3),
+    .i_opcode (opcode),
     .o_io_ledr   (o_io_ledr),
     .o_io_ledg   (o_io_ledg),
     .o_io_hex0   (o_io_hex0), .o_io_hex1(o_io_hex1), .o_io_hex2(o_io_hex2),
@@ -132,7 +156,7 @@ brc Brc (
     .i_io_sw     (i_io_sw)
   );
 
- //========= WB mux ( CHON ALU/LOAD/PC+4/0)===============
+ //========= WB mux (SELECT PC+4/ALU/LOAD/0) ===============
   mux4 #(32) MUX_WB (
     .d0 (pc_plus),
     .d1 (alu_data),

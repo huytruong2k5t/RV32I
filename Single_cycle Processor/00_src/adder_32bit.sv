@@ -1,15 +1,28 @@
+//-----------------------------------------------------------------------------
+// File          : adder_32bit.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 22/10/2025
+//
+// Description   : 32-bit ripple-carry adder with carry-out and overflow detection.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module adder_32bit (
     input  logic [31:0] a,
     input  logic [31:0] b,
     input  logic        cin,
     output logic [31:0] sum,
     output logic        cout,
-    output logic        v  
+    output logic        v
 );
     logic [32:0] Carry;
     assign Carry[0] = cin;
 
-    // 32 full adders nối tiếp nhau
+    // 32 full adders connected in cascade
     full_adder fa0  (.a(a[0]),  .b(b[0]),  .cin(Carry[0]),  .sum(sum[0]),  .cout(Carry[1]));
     full_adder fa1  (.a(a[1]),  .b(b[1]),  .cin(Carry[1]),  .sum(sum[1]),  .cout(Carry[2]));
     full_adder fa2  (.a(a[2]),  .b(b[2]),  .cin(Carry[2]),  .sum(sum[2]),  .cout(Carry[3]));

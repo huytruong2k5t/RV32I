@@ -1,13 +1,26 @@
+//-----------------------------------------------------------------------------
+// File          : regfile.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 24/10/2025
+//
+// Description   : 32x32-bit Register File module with synchronous write and asynchronous read.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module regfile (
-  input  logic        i_clk,
-  input  logic        i_reset,
-  input  logic [4:0]  i_rs1_addr,
-  input  logic [4:0]  i_rs2_addr,
-  input  logic [4:0]  i_rd_addr, 
-  input  logic [31:0] i_rd_data,
-  input  logic        i_rd_wren,
-  output logic [31:0] o_rs1_data,
-  output logic [31:0] o_rs2_data
+    input  logic        i_clk,
+    input  logic        i_reset,
+    input  logic [4:0]  i_rs1_addr,
+    input  logic [4:0]  i_rs2_addr,
+    input  logic [4:0]  i_rd_addr,
+    input  logic [31:0] i_rd_data,
+    input  logic        i_rd_wren,
+    output logic [31:0] o_rs1_data,
+    output logic [31:0] o_rs2_data
 );
 
   logic [31:0] register_rf [31:0];

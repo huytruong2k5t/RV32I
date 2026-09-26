@@ -1,10 +1,23 @@
+//-----------------------------------------------------------------------------
+// File          : Imem.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 24/10/2025
+//
+// Description   : Instruction memory (ROM) module.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module Imem(
-   input logic [31:0] pc,
-	input logic i_reset,
-	input logic i_clk,
-   output logic [31:0] Rom_mem
+    input logic [31:0] pc,
+    input logic i_reset,
+    input logic i_clk,
+    output logic [31:0] Rom_mem
 );
-	
+    
    logic [31:0] instruction_memory [0:2047]; 
 
     initial begin

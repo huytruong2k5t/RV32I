@@ -1,4 +1,15 @@
-
+//-----------------------------------------------------------------------------
+// File          : immgen.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 23/10/2025
+//
+// Description   : Immediate Generator generating 32-bit sign-extended immediates for RV32I.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
 
 module immgen (
     input  logic [31:0] i_instr,

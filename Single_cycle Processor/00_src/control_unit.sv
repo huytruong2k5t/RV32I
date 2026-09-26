@@ -1,3 +1,16 @@
+//-----------------------------------------------------------------------------
+// File          : control_unit.sv
+// Author(s)     : Trương Đào Đan Huy
+// Email         : 
+// Project       : Single-Cycle RISC-V 32I
+// Creation Date : 26/10/2025
+//
+// Description   : Main Control Unit decoding RV32I instructions and generating control signals.
+//-----------------------------------------------------------------------------
+// $Source: $
+// $Revision: $
+// $Log: $
+
 module control_unit (
     input  logic [31:0] i_instr,
     input  logic        i_br_less,
@@ -20,7 +33,7 @@ module control_unit (
     assign funct3 = i_instr[14:12];
     assign funct7 = i_instr[31:25];
 
-//========= DINH NGHIA HAM ===============
+//========= PARAMETER DEFINITIONS / ALU OPS ==============
     parameter 
       ALU_ADD  = 4'b0000,
       ALU_SUB  = 4'b0001,
@@ -35,7 +48,7 @@ module control_unit (
       ALU_LUI  = 4'b1010;
 
     always_comb begin
-	 o_rd_wren     = 1'b0;
+     o_rd_wren     = 1'b0;
     o_mem_wren    = 1'b0;
     o_opa_sel     = 1'b0;
     o_opb_sel     = 1'b0;
@@ -44,16 +57,16 @@ module control_unit (
     o_br_un       = 1'b0;
     o_pc_sel      = 1'b1;
     o_valid_instr = 1'b0;
-//====== XU LI OPCODE R-TYPE========        
+//====== HANDLE R-TYPE OPCODE ========        
          case (opcode)
             7'b0110011: begin
                 o_rd_wren = 1'b1;   
                 o_opa_sel = 1'b1;   
                 o_opb_sel = 1'b0;   
-					 o_br_un    = 1'b0;
+                     o_br_un    = 1'b0;
                 o_mem_wren = 1'b0;  
                 o_wb_sel = 2'b01;   
-					o_valid_instr = 1'b1;
+                    o_valid_instr = 1'b1;
                  case (funct3)
                     3'b000: begin
                         
@@ -82,85 +95,85 @@ module control_unit (
                 o_pc_sel = 1'b1;    
             end
 
-//======= XU LY OPCODE I-TYPE===========        
+//======= HANDLE I-TYPE OPCODE ===========        
             7'b0010011: begin
 
-		  o_rd_wren  = 1'b1;
-		  o_opa_sel  = 1'b1;   
-		  o_opb_sel  = 1'b1;   
-		  o_mem_wren = 1'b0;
-		  o_wb_sel   = 2'b01; 
-		  o_pc_sel   = 1'b1;  
-		  o_br_un    = 1'b0;
-		  o_valid_instr = 1'b1;
+          o_rd_wren  = 1'b1;
+          o_opa_sel  = 1'b1;   
+          o_opb_sel  = 1'b1;   
+          o_mem_wren = 1'b0;
+          o_wb_sel   = 2'b01; 
+          o_pc_sel   = 1'b1;  
+          o_br_un    = 1'b0;
+          o_valid_instr = 1'b1;
 
 
 
-			case (funct3)
+            case (funct3)
 
-			 3'b000: o_alu_op = ALU_ADD;   
+             3'b000: o_alu_op = ALU_ADD;   
 
-			 3'b010: o_alu_op = ALU_SLT;  
+             3'b010: o_alu_op = ALU_SLT;  
 
-			 3'b011: o_alu_op = ALU_SLTU;  
+             3'b011: o_alu_op = ALU_SLTU;  
 
-			 3'b100: o_alu_op = ALU_XOR;   
+             3'b100: o_alu_op = ALU_XOR;   
 
-			 3'b110: o_alu_op = ALU_OR;    
+             3'b110: o_alu_op = ALU_OR;    
 
-			 3'b111: o_alu_op = ALU_AND;   
+             3'b111: o_alu_op = ALU_AND;   
 
-			 3'b001: begin
+             3'b001: begin
 
-				if (i_instr[31:25]==7'b0000000) 
-			o_alu_op = ALU_SLL;
+                if (i_instr[31:25]==7'b0000000) 
+            o_alu_op = ALU_SLL;
 
-				else o_valid_instr = 1'b0;
+                else o_valid_instr = 1'b0;
 
-			 end
+             end
 
-			 3'b101: begin 
+             3'b101: begin 
 
-				if      (i_instr[31:25]==7'b0000000) 
-			o_alu_op = ALU_SRL;
+                if      (i_instr[31:25]==7'b0000000) 
+            o_alu_op = ALU_SRL;
 
-				else if (i_instr[31:25]==7'b0100000) 
-			o_alu_op = ALU_SRA;
+                else if (i_instr[31:25]==7'b0100000) 
+            o_alu_op = ALU_SRA;
 
-			 end
+             end
 
-			 default: o_valid_instr = 1'b0;
+             default: o_valid_instr = 1'b0;
 
-		  endcase
+          endcase
 
-		end
+        end
 
-		//====== XU LY LENH LOAD==========
-						7'b0000011: begin
-							 o_rd_wren  = 1'b1;   
-							 o_opa_sel  = 1'b1;   
-							 o_opb_sel  = 1'b1; 
-							 o_alu_op   = ALU_ADD; 
-							 o_mem_wren = 1'b0;   
-							 o_wb_sel   = 2'b10; 
-							 o_br_un    = 1'b0;
-							 o_pc_sel   = 1'b1;
-				o_valid_instr = 1'b1;
-						end
+        //====== HANDLE LOAD INSTRUCTIONS ==========
+                        7'b0000011: begin
+                             o_rd_wren  = 1'b1;   
+                             o_opa_sel  = 1'b1;   
+                             o_opb_sel  = 1'b1; 
+                             o_alu_op   = ALU_ADD; 
+                             o_mem_wren = 1'b0;   
+                             o_wb_sel   = 2'b10; 
+                             o_br_un    = 1'b0;
+                             o_pc_sel   = 1'b1;
+                o_valid_instr = 1'b1;
+                        end
 
-		 //========== XU LY LENH S-TYPE==========          
-						7'b0100011: begin
-							 o_rd_wren  = 1'b0;   
-							 o_opa_sel  = 1'b1;   
-							 o_opb_sel  = 1'b1;   
-							 o_alu_op   = ALU_ADD; 
-							 o_mem_wren = 1'b1;   
-							 o_wb_sel   = 2'b11;  
-							 o_pc_sel   = 1'b1;
-				o_valid_instr = 1'b1;
-						end
+         //========== HANDLE S-TYPE INSTRUCTIONS ==========          
+                        7'b0100011: begin
+                             o_rd_wren  = 1'b0;   
+                             o_opa_sel  = 1'b1;   
+                             o_opb_sel  = 1'b1;   
+                             o_alu_op   = ALU_ADD; 
+                             o_mem_wren = 1'b1;   
+                             o_wb_sel   = 2'b11;  
+                             o_pc_sel   = 1'b1;
+                o_valid_instr = 1'b1;
+                        end
 
-//========= XU LY LENH B-TYPE ==============  
+//========= HANDLE B-TYPE INSTRUCTIONS ==============  
             7'b1100011: begin
 
                 o_rd_wren  = 1'b0;
@@ -170,7 +183,7 @@ module control_unit (
                 o_opb_sel  = 1'b1;   
                 o_alu_op   = ALU_ADD;
                 o_wb_sel   = 2'b01;  
-		o_valid_instr = 1'b1;
+        o_valid_instr = 1'b1;
 
                 if (funct3 == 3'b110 || funct3 == 3'b111) begin
                     o_br_un = 1'b0;
@@ -190,7 +203,7 @@ module control_unit (
                 endcase
             end
 
-//========= XU LY LENH JAL ===========
+//========= HANDLE JAL INSTRUCTION ===========
             7'b1101111: begin
                 o_rd_wren  = 1'b1;   
                 o_opa_sel  = 1'b0;   
@@ -200,10 +213,10 @@ module control_unit (
                 o_wb_sel   = 2'b00;  
                 o_br_un    = 1'b0;
                 o_pc_sel   = 1'b0;   
-		o_valid_instr = 1'b1;
+        o_valid_instr = 1'b1;
             end
 
-//========= XU LY LENH JARL ===========
+//========= HANDLE JALR INSTRUCTION ===========
             7'b1100111: begin
                 o_rd_wren  = 1'b1;   
                 o_opa_sel  = 1'b1;   
@@ -213,10 +226,10 @@ module control_unit (
                 o_wb_sel   = 2'b01;  
                 o_br_un    = 1'b0;
                 o_pc_sel   = 1'b0;   
-		o_valid_instr = 1'b1;
+        o_valid_instr = 1'b1;
             end
 
-//========== XU LY LENH U-TYPE ==========
+//========== HANDLE U-TYPE (LUI) INSTRUCTION ==========
             7'b0110111: begin
                 o_rd_wren  = 1'b1;
  
@@ -226,10 +239,10 @@ module control_unit (
                 o_mem_wren = 1'b0;
                 o_wb_sel   = 2'b01;  
                 o_pc_sel   = 1'b1;
-		o_valid_instr = 1'b1;
+        o_valid_instr = 1'b1;
             end
 
-//========= XU LY AUIPC ===========
+//========= HANDLE AUIPC INSTRUCTION ===========
             7'b0010111: begin
                 o_rd_wren  = 1'b1;
                 o_opa_sel  = 1'b0;   
@@ -238,11 +251,11 @@ module control_unit (
                 o_mem_wren = 1'b0;
                 o_wb_sel   = 2'b01;  
                 o_pc_sel   = 1'b1;
-		o_valid_instr = 1'b1;
+        o_valid_instr = 1'b1;
             end
 
-//========= CAC TRUONG HOP KHAC =================
-					default: begin
+//========= DEFAULT / OTHER CASES =================
+                    default: begin
                
                 o_rd_wren     = 1'b0;
                 o_mem_wren    = 1'b0;
