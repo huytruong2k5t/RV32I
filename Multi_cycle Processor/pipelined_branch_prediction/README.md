@@ -28,7 +28,7 @@
 ## 1. Giới thiệu Tổng quan
 
 Dự án hiện thực một vi xử lý chuẩn **RISC-V 32-bit (RV32I)** dạng **5-stage pipeline** hoàn chỉnh bằng **SystemVerilog**, mô phỏng và kiểm tra trên nền tảng **ModelSim**. Bộ xử lý được trang bị đầy đủ các đơn vị chức năng nâng cao:
-- **Đường truyền dữ liệu (Datapath) 5 tầng:** Fetch (IF) $\rightarrow$ Decode (ID) $\rightarrow$ Execute (EX) $\rightarrow$ Memory (MEM) $\rightarrow$ Writeback (WB).
+- **Đường truyền dữ liệu (Datapath) 5 tầng:** Fetch (IF) → Decode (ID) → Execute (EX) → Memory (MEM) → Writeback (WB).
 - **Bộ Forwarding & Hazard Unit linh hoạt:** Triệt tiêu độ trễ xung đột dữ liệu (RAW data hazard), xử lý chuẩn xác Load-Use Hazard và Control Hazard (Branch/Jump).
 - **Hỗ trợ ngoại vi Memory-Mapped I/O:** Giao tiếp trực tiếp với Switches, LEDs, màn hình LCD và 8 LED 7 đoạn (HEX0-HEX7).
 - **Hỗ trợ truy xuất bộ nhớ lệch byte (Misaligned Access):** Cho phép các lệnh Load/Store đọc/ghi dữ liệu ở bất kỳ địa chỉ nào mà không bị gián đoạn.
@@ -71,13 +71,17 @@ Khác với các thiết kế mẫu cơ bản thường gặp phải nhiều xun
 ### 🌟 2. Giải pháp Đột phá cho Misaligned Memory Access (`malgn`)
 - **Đặc điểm:** Phần lớn các bộ xử lý sinh viên chỉ hỗ trợ đọc dữ liệu chẵn 4-byte (aligned). Khi gặp địa chỉ lẻ (ví dụ `0x0001`, `0x0002`), dữ liệu bị sai lệch.
 - **Giải pháp của project:** Trong module `lsu.sv`, áp dụng **kỹ thuật cửa sổ trượt 64-bit**:
-  $$\text{raw\_mem\_64} = \{\text{data\_mem}[\text{word\_addr}+1], \text{data\_mem}[\text{word\_addr}]\}$$
-  Dữ liệu 32-bit mong muốn được trích xuất chính xác theo offset byte:
-  $$\text{mem\_rdata\_aligned} = \text{raw\_mem\_64}[\text{addr}[1:0] \times 8 +: 32]$$
+  ```systemverilog
+  // Ghép 2 từ nhớ 32-bit liên tiếp thành cửa sổ trượt 64-bit:
+  raw_mem_64 = {data_mem[word_addr + 1], data_mem[word_addr]};
+
+  // Trích xuất 32-bit dữ liệu theo byte offset:
+  mem_rdata_aligned = raw_mem_64[addr[1:0] * 8 +: 32];
+  ```
 - **Kết quả:** Vượt qua bài kiểm tra khó nhất **`malgn` test** với kết quả tuyệt đối.
 
 ### 🌟 3. Forwarding Unit Toàn diện & Thông minh
-- Hỗ trợ chuyển tiếp dữ liệu đồng thời từ cả **MEM Stage** (kết quả ALU hoặc PC+4) và **WB Stage** (kết quả cuối cùng) về 2 toán hạng $A$ và $B$ của ALU & BRC tại tầng EX.
+- Hỗ trợ chuyển tiếp dữ liệu đồng thời từ cả **MEM Stage** (kết quả ALU hoặc PC+4) và **WB Stage** (kết quả cuối cùng) về 2 toán hạng **A** và **B** của ALU & BRC tại tầng EX.
 - Các lệnh phụ thuộc dữ liệu liên tiếp (như `add x1, x2, x3` theo sau ngay bởi `sub x4, x1, x5`) **chạy liên tục với 0 chu kỳ stall**.
 
 ### 🌟 4. Ghi thanh ghi 2 pha (Negative-Edge Clocked RegFile)
@@ -109,71 +113,79 @@ Trong phiên bản nâng cấp (milestone_3_test3), vi xử lý được trang b
 
 ```mermaid
 graph TD
-    %% Tín hiệu điều khiển từ Control Unit
-    subgraph CU_BLK ["KHỐI ĐIỀU KHIỂN TRUNG TÂM (CONTROL UNIT)"]
+    %% 5-Stage Datapath Architecture
+    subgraph IF_STAGE ["1. TẦNG NẠP LỆNH (FETCH - IF)"]
+        PC["PC (PC.sv)"]
+        ADD4["PC + 4 (pc_plus_four.sv)"]
+        BP["Branch Predictor (branch_predictor.sv)"]
+        PCT["Next PC Selector (pc_target.sv)"]
+        IMEM["Instruction Memory (Imem.sv)"]
+        
+        PCT -->|pc_next| PC
+        PC -->|pc| IMEM
+        PC -->|pc| ADD4
+        PC -->|pc| BP
+    end
+
+    subgraph ID_STAGE ["2. TẦNG GIẢI MÃ (DECODE - ID)"]
         CU["Control Unit (control_unit.sv)"]
+        RF["Register File (regfile.sv)"]
+        IMG["Immediate Gen (immgen.sv)"]
     end
-    %% Khối cập nhật địa chỉ lệnh
-    subgraph IF_STAGE ["NẠP LỆNH (FETCH)"]
-        PC["Program Counter (PC.sv)"] -->|o_pc_debug| IMEM["Instruction Memory (Imem.sv)"]
-        PC --> ADD4["PC + 4 Adder (pc_plus_four.sv)"]
-        ADD4 -->|pc_plus| MUX_PC["MUX PC Next (mux2.sv)"]
-        ALU_RES["ALU Result (alu_data)"] -->|alu_data| MUX_PC
-        MUX_PC -->|pc_next| PC
+
+    subgraph EX_STAGE ["3. TẦNG THỰC THI (EXECUTE - EX)"]
+        FWD_A["MUX Forwarding A (mux4.sv)"]
+        FWD_B["MUX Forwarding B (mux4.sv)"]
+        ALU["ALU (alu.sv)"]
+        BRC["Branch Comp (brc.sv)"]
+        BREVAL["Branch Eval (branch_eval.sv)"]
     end
-    %% Khối giải mã và đọc thanh ghi
-    subgraph ID_STAGE ["GIẢI MÃ & THANH GHI (DECODE & REGFILE)"]
-        IMEM -->|"instr [31:0]"| CU
-        IMEM -->|instr| IMMGEN["Immediate Generator (immgen.sv)"]
-        IMEM -->|rs1_addr, rs2_addr, rd_addr| RF["Register File (regfile.sv)"]
-        RF -->|rs1_data| BRC["Branch Comparator (brc.sv)"]
-        RF -->|rs2_data| BRC
-        BRC -->|br_less, br_equal| CU
+
+    subgraph MEM_STAGE ["4. TẦNG BỘ NHỚ (MEMORY - MEM)"]
+        LSU["Load Store Unit (lsu.sv)"]
+        MMIO["Peripherals (LED/HEX/LCD/SW)"]
+        LSU --> MMIO
     end
-    %% Khối thực thi ALU
-    subgraph EX_STAGE ["THỰC THI (EXECUTE)"]
-        PC -->|pc_q| MUX_A["MUX Operand A (mux2.sv)"]
-        RF -->|rs1_data| MUX_A
-        RF -->|rs2_data| MUX_B["MUX Operand B (mux2.sv)"]
-        IMMGEN -->|imm| MUX_B
-        MUX_A -->|op_a| ALU["Arithmetic Logic Unit (alu.sv)"]
-        MUX_B -->|op_b| ALU
-        ALU --> ALU_RES
+
+    subgraph WB_STAGE ["5. TẦNG GHI TRẢ (WRITEBACK - WB)"]
+        MUX_WB["Writeback MUX (mux4.sv)"]
     end
-    %% Khối truy xuất bộ nhớ và ngoại vi
-    subgraph MEM_STAGE ["TRUY XUẤT BỘ NHỚ & NGOẠI VI (LSU)"]
-        ALU_RES -->|i_lsu_addr| LSU["Load-Store Unit (lsu.sv)"]
-        RF -->|rs2_data| LSU
-        SW["i_io_sw [31:0]"] --> LSU
-        LSU -->|o_io_ledr| LEDR["Red LEDs"]
-        LSU -->|o_io_ledg| LEDG["Green LEDs"]
-        LSU -->|"o_io_hex0..7"| HEX["7-Segment Displays"]
-        LSU -->|o_io_lcd| LCD["LCD Display"]
-        LSU -->|ld_data| MUX_WB["MUX Writeback (mux4.sv)"]
+
+    subgraph HAZARD_UNIT ["ĐƠN VỊ KIỂM SOÁT HAZARD & FORWARDING"]
+        HDU["Hazard & Forwarding (hazard_forwarding.sv)"]
     end
-    %% Khối ghi trả Writeback
-    subgraph WB_STAGE ["GHI TRẢ DỮ LIỆU (WRITEBACK)"]
-        ADD4 -->|"d0: pc_plus"| MUX_WB
-        ALU_RES -->|"d1: alu_data"| MUX_WB
-        MUX_WB -->|rd_data| RF
-    end
-    %% Đường điều khiển
-    CU -.->|pc_sel| MUX_PC
-    CU -.->|opa_sel| MUX_A
-    CU -.->|opb_sel| MUX_B
-    CU -.->|alu_op| ALU
-    CU -.->|mem_wren| LSU
-    CU -.->|wb_sel| MUX_WB
-    CU -.->|rd_wren| RF
-    CU -.->|br_un| BRC
-    CU -.->|o_insn_vld| VLD["o_insn_vld (Valid Flag)"]
+
+    %% Pipeline Registers (Stage Latches)
+    IF_STAGE -->|"Thanh ghi chốt IF/ID"| ID_STAGE
+    ID_STAGE -->|"Thanh ghi chốt ID/EX"| EX_STAGE
+    EX_STAGE -->|"Thanh ghi chốt EX/MEM"| MEM_STAGE
+    MEM_STAGE -->|"Thanh ghi chốt MEM/WB"| WB_STAGE
+
+    %% Chuyển tiếp dữ liệu (Forwarding Paths)
+    MEM_STAGE -.->|"Forwarding MEM"| FWD_A
+    MEM_STAGE -.->|"Forwarding MEM"| FWD_B
+    WB_STAGE -.->|"Forwarding WB"| FWD_A
+    WB_STAGE -.->|"Forwarding WB"| FWD_B
+
+    %% Ghi trả dữ liệu thanh ghi (Writeback to RF)
+    MUX_WB -.->|"rd_data (Ghi tại negedge clk)"| RF
+
+    %% Dự đoán và Rẽ nhánh phản hồi về IF
+    BP -.->|"Predicted PC"| PCT
+    BREVAL -.->|"Redirect / Correct PC"| PCT
+    BREVAL -.->|"Actual Outcome"| BP
+
+    %% Tín hiệu điều khiển Hazard (Stall / Flush)
+    HDU -.->|"Stall PC & IF/ID"| IF_STAGE
+    HDU -.->|"Flush ID/EX"| EX_STAGE
+    HDU -.->|"Forwarding Selects"| EX_STAGE
 ```
 
 ### Chi tiết các tầng:
 1. **Instruction Fetch (IF):** 
    - `PC` lưu địa chỉ lệnh hiện tại.
-   - `pc_plus_four` cộng địa chỉ thêm 4 byte ($PC + 4$).
-   - `pc_target` chọn giữa $PC+4$ hoặc Target Address từ EX khi có Branch/Jump.
+   - `pc_plus_four` cộng địa chỉ thêm 4 byte (PC + 4).
+   - `pc_target` chọn giữa PC + 4 hoặc Target Address khi rẽ nhánh / dự đoán nhánh.
 2. **Instruction Decode (ID):**
    - Trích xuất trường thanh ghi `rs1`, `rs2`, `rd`, `opcode`, `funct3`.
    - `immgen` giải mã số tức thời cho 6 định dạng (I, S, B, U, J).
@@ -186,7 +198,7 @@ graph TD
    - `lsu` quản lý đọc/ghi bộ nhớ RAM và các thanh ghi ngoại vi I/O.
    - Hỗ trợ lưu trữ theo kích thước byte, halfword, word thông qua `store_unit_logic`.
 5. **Write Back (WB):**
-   - `mux4` chọn dữ liệu ghi lại vào Register File: $PC+4$ (lệnh nhảy), kết quả ALU, hoặc dữ liệu đọc từ bộ nhớ (`ld_data`).
+   - `mux4` chọn dữ liệu ghi lại vào Register File: PC + 4 (lệnh nhảy), kết quả ALU, hoặc dữ liệu đọc từ bộ nhớ (`ld_data`).
 
 ---
 
